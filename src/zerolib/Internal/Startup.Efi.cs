@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#if UEFI
-
 using System;
 using System.Runtime;
 using System.Runtime.CompilerServices;
@@ -23,6 +21,7 @@ using System.Runtime.InteropServices;
 
 namespace Internal.Runtime.CompilerHelpers
 {
+    #if UEFI
     unsafe partial class StartupCodeHelpers
     {
         [RuntimeImport("*", "__managed__Main")]
@@ -32,6 +31,7 @@ namespace Internal.Runtime.CompilerHelpers
         [RuntimeExport("EfiMain")]
         static long EfiMain(IntPtr imageHandle, EFI_SYSTEM_TABLE* systemTable)
         {
+            SetEfiImageHandle(imageHandle);
             SetEfiSystemTable(systemTable);
             ManagedMain(0, null);
 
@@ -48,15 +48,16 @@ namespace Internal.Runtime.CompilerHelpers
             return new string[0];
         }
     }
+    #endif
 
     [StructLayout(LayoutKind.Sequential)]
-    struct EFI_HANDLE
+    public struct EFI_HANDLE
     {
         private IntPtr _handle;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe readonly struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL
+    public unsafe readonly struct EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL
     {
         private readonly IntPtr _pad0;
         public readonly delegate* unmanaged<void*, char*, void*> OutputString;
@@ -69,21 +70,21 @@ namespace Internal.Runtime.CompilerHelpers
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    readonly struct EFI_INPUT_KEY
+    public readonly struct EFI_INPUT_KEY
     {
         public readonly ushort ScanCode;
         public readonly ushort UnicodeChar;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe readonly struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL
+    public unsafe readonly struct EFI_SIMPLE_TEXT_INPUT_PROTOCOL
     {
         private readonly IntPtr _pad0;
         public readonly delegate* unmanaged<void*, EFI_INPUT_KEY*, ulong> ReadKeyStroke;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    readonly struct EFI_TABLE_HEADER
+    public readonly struct EFI_TABLE_HEADER
     {
         public readonly ulong Signature;
         public readonly uint Revision;
@@ -93,7 +94,7 @@ namespace Internal.Runtime.CompilerHelpers
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe readonly struct EFI_SYSTEM_TABLE
+    public unsafe readonly struct EFI_SYSTEM_TABLE
     {
         public readonly EFI_TABLE_HEADER Hdr;
         public readonly char* FirmwareVendor;
@@ -109,7 +110,7 @@ namespace Internal.Runtime.CompilerHelpers
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct EFI_TIME
+    public struct EFI_TIME
     {
         public ushort Year;
         public byte Month;
@@ -125,7 +126,7 @@ namespace Internal.Runtime.CompilerHelpers
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct EFI_TIME_CAPABILITIES
+    public struct EFI_TIME_CAPABILITIES
     {
         public uint Resolution;
         public uint Accuracy;
@@ -133,23 +134,32 @@ namespace Internal.Runtime.CompilerHelpers
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe readonly struct EFI_RUNTIME_SERVICES
+    public unsafe readonly struct EFI_RUNTIME_SERVICES
     {
         public readonly EFI_TABLE_HEADER Hdr;
         public readonly delegate* unmanaged<EFI_TIME*, EFI_TIME_CAPABILITIES*, ulong> GetTime;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    unsafe readonly struct EFI_BOOT_SERVICES
+    public unsafe readonly struct EFI_MEMORY_DESCRIPTOR {
+        public readonly uint Type;
+        public readonly ulong PhysicalStart; // type maybe should be IntPtr?
+        public readonly ulong VirtualStart; // type maybe should be IntPtr?
+        public readonly ulong NumberOfPages;
+        public readonly ulong Attribute;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_BOOT_SERVICES
     {
         readonly EFI_TABLE_HEADER Hdr;
         private readonly void* pad0;
         private readonly void* pad1;
         private readonly void* pad2;
         private readonly void* pad3;
-        private readonly void* pad4;
+        public readonly delegate* unmanaged<nuint*, EFI_MEMORY_DESCRIPTOR*, nuint*, nuint*, uint*, EFI_STATUS> GetMemoryMap;
         public readonly delegate* unmanaged<int, nint, void**, ulong> AllocatePool;
-        private readonly void* pad6;
+        public readonly delegate* unmanaged<void*, ulong> FreePool;
         private readonly void* pad7;
         private readonly void* pad8;
         private readonly void* pad9;
@@ -168,11 +178,118 @@ namespace Internal.Runtime.CompilerHelpers
         private readonly void* pad22;
         private readonly void* pad23;
         private readonly void* pad24;
-        private readonly void* pad25;
         private readonly void* pad26;
+        public readonly delegate* unmanaged<IntPtr, nuint, EFI_STATUS> ExitBootServices;
         private readonly void* pad27;
         public readonly delegate* unmanaged<uint, ulong> Stall;
+        private readonly void* pad28; // SetWatchdogTimer
+        private readonly void* pad29; // ConnectController
+        private readonly void* pad30; // DisconnectController
+        private readonly void* pad31; // OpenProtocol
+        private readonly void* pad32; // CloseProtocol
+        private readonly void* pad33; // OpenProtocolInformation
+        private readonly void* pad34; // ProtocolsPerHandle
+        private readonly void* pad35; // LocateHandleBuffer
+        public readonly delegate* unmanaged<EFI_GUID*, void*, void**, EFI_STATUS> LocateProtocol;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct EFI_GUID {
+        public readonly uint Data1;
+        public readonly ushort Data2;
+        public readonly ushort Data3;
+        public fixed byte Data4[8];
+
+        public EFI_GUID(uint data1, ushort data2, ushort data3, byte data4_0, byte data4_1, byte data4_2, byte data4_3, byte data4_4, byte data4_5, byte data4_6, byte data4_7) {
+            Data1 = data1;
+            Data2 = data2;
+            Data3 = data3;
+            Data4[0] = data4_0;
+            Data4[1] = data4_1;
+            Data4[2] = data4_2;
+            Data4[3] = data4_3;
+            Data4[4] = data4_4;
+            Data4[5] = data4_5;
+            Data4[6] = data4_6;
+            Data4[7] = data4_7;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
+        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, uint, nuint*, EFI_GRAPHICS_OUTPUT_MODE_INFORMATION**, EFI_STATUS> QueryMode;
+        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, uint, EFI_STATUS> SetMode;
+        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, EFI_GRAPHICS_OUTPUT_BLT_PIXEL*, EFI_GRAPHICS_OUTPUT_BLT_OPERATION, nuint, nuint, nuint, nuint, nuint, nuint, nuint, EFI_STATUS> Blt;
+        public readonly EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE* Mode;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL {
+        public readonly byte Blue;
+        public readonly byte Green;
+        public readonly byte Red;
+        public readonly byte Reserved;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE {
+        public readonly uint MaxMode;
+        public readonly uint Mode;
+        public readonly EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* Info;
+        public readonly nuint SizeOfInfo;
+        public readonly nuint FrameBufferBase; // is this type correct?
+        public readonly nuint FrameBufferSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_MODE_INFORMATION {
+        public readonly uint Version;
+        public readonly uint HorizontalResolution;
+        public readonly uint VerticalResolution;
+        public readonly EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
+        public readonly EFI_PIXEL_BITMASK PixelInformation;
+        public readonly uint PixelsPerScanLine;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe readonly struct EFI_PIXEL_BITMASK {
+        public readonly uint RedMask;
+        public readonly uint GreenMask;
+        public readonly uint BlueMask;
+        public readonly uint ReservedMask;
+    }
+
+    public enum EFI_GRAPHICS_PIXEL_FORMAT : uint {
+        PixelRedGreenBlueReserved8BitPerColor,
+        PixelBlueGreenRedReserved8BitPerColor,
+        PixelBitMask,
+        PixelBltOnly,
+        PixelFormatMax
+    }
+
+    public enum EFI_GRAPHICS_OUTPUT_BLT_OPERATION : uint {
+        EfiBltVideoFill,
+        EfiBltVideoToBltBuffer,
+        EfiBltBufferToVideo,
+        EfiBltVideoToVideo,
+        EfiGRaphicsOutputBltOperationMax
+    }
+
+    public enum EFI_STATUS : ulong {
+        // TODO: Shouldn't hardcode the bit width to 64 if we want to support 32-bit systems
+        EFI_SUCCESS =	    	0,
+        EFI_LOAD_ERROR =		0x8000000000000001,
+        EFI_INVALID_PARAMETER =	0x8000000000000002,
+        EFI_UNSUPPORTED	=	    0x8000000000000003,
+        EFI_BAD_BUFFER_SIZE	=   0x8000000000000004,
+        EFI_BUFFER_TOO_SMALL =	0x8000000000000005,
+        EFI_NOT_READY =		    0x8000000000000006,
+        EFI_DEVICE_ERROR =	    0x8000000000000007,
+        EFI_WRITE_PROTECTED =	0x8000000000000008,
+        EFI_OUT_OF_RESOURCES =	0x8000000000000009,
+        EFI_NOT_FOUND = 		0x800000000000000E,
+        EFI_TIMEOUT =   		0x8000000000000012,
+        EFI_ABORTED =   		0x8000000000000015,
+        EFI_SECURITY_VIOLATION =0x800000000000001A,
     }
 }
-
-#endif

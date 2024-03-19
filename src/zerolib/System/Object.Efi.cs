@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#if UEFI
+//#if UEFI
 
 using Internal.Runtime.CompilerHelpers;
 
@@ -23,10 +23,14 @@ namespace System
     public unsafe partial class Object
     {
         private static void* s_efiSystemTable;
+        private static IntPtr s_efiImageHandle;
 
-        internal static EFI_SYSTEM_TABLE* EfiSystemTable => (EFI_SYSTEM_TABLE*)s_efiSystemTable;
+        public static IntPtr EfiImageHandle => (IntPtr)s_efiImageHandle;
+
+        public static EFI_SYSTEM_TABLE* EfiSystemTable => (EFI_SYSTEM_TABLE*)s_efiSystemTable;
         internal static void SetEfiSystemTable(EFI_SYSTEM_TABLE* t) => s_efiSystemTable = t;
+        internal static void SetEfiImageHandle(IntPtr h) => s_efiImageHandle = h;
     }
 }
 
-#endif
+//#endif

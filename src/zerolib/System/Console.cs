@@ -53,8 +53,12 @@ namespace System
             Console.Write('\n');
         }
 
-        public static void WriteLine(int i)
-        {
+        public static void Write(string s) {
+            for (int i = 0; i < s.Length; i++)
+                Console.Write(s[i]);
+        }
+
+        public static void Write(int i) {
             const int BufferSize = 16;
             char* pBuffer = stackalloc char[BufferSize];
             if (i < 0)
@@ -72,6 +76,11 @@ namespace System
 
             while (pCurrent <= pEnd)
                 Write(*(pCurrent++));
+        }
+
+        public static void WriteLine(int i)
+        {
+            Write(i);
 
 #if WINDOWS || UEFI
             Console.Write('\r');

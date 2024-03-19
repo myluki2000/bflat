@@ -24,5 +24,11 @@ namespace System
         // The layout of object is a contract with the compiler.
         internal unsafe MethodTable* m_pMethodTable;
 #pragma warning restore 169
+
+        public static unsafe void Free(Object obj) {
+            fixed(MethodTable** mt = &obj.m_pMethodTable) {
+                EfiSystemTable->BootServices->FreePool((void*)mt);
+            }
+        }
     }
 }
