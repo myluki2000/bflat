@@ -153,34 +153,34 @@ namespace Internal.Runtime.CompilerHelpers
     public unsafe readonly struct EFI_BOOT_SERVICES
     {
         readonly EFI_TABLE_HEADER Hdr;
-        private readonly void* pad0;
-        private readonly void* pad1;
-        private readonly void* pad2;
-        private readonly void* pad3;
+        private readonly void* pad0; // RaiseTPL
+        private readonly void* pad1; // RestoreTPL
+        private readonly void* pad2; // AllocatePages
+        private readonly void* pad3; // FreePages
         public readonly delegate* unmanaged<nuint*, EFI_MEMORY_DESCRIPTOR*, nuint*, nuint*, uint*, EFI_STATUS> GetMemoryMap;
         public readonly delegate* unmanaged<int, nint, void**, ulong> AllocatePool;
         public readonly delegate* unmanaged<void*, ulong> FreePool;
-        private readonly void* pad7;
-        private readonly void* pad8;
-        private readonly void* pad9;
-        private readonly void* pad10;
-        private readonly void* pad11;
-        private readonly void* pad12;
-        private readonly void* pad13;
-        private readonly void* pad14;
-        private readonly void* pad15;
-        private readonly void* pad16;
-        private readonly void* pad17;
-        private readonly void* pad18;
-        private readonly void* pad19;
-        private readonly void* pad20;
-        private readonly void* pad21;
-        private readonly void* pad22;
-        private readonly void* pad23;
-        private readonly void* pad24;
-        private readonly void* pad26;
+        private readonly void* pad07; // CreateEvent
+        private readonly void* pad08; // SetTimer
+        private readonly void* pad09; // WaitForEvent
+        private readonly void* pad10; // SignalEvent
+        private readonly void* pad11; // CloseEvent
+        private readonly void* pad12; // CheckEvent
+        private readonly void* pad13; // InstallProtocolInterface
+        private readonly void* pad14; // ReinstallProtocolInterface
+        private readonly void* pad15; // UninstallProtocolInterface
+        public readonly delegate* unmanaged<EFI_HANDLE, EFI_GUID*, void**, EFI_STATUS> HandleProtocol;
+        private readonly void* reserved; 
+        private readonly void* pad18; // RegisterProtocolNotify
+        private readonly void* pad19; // LocateHandle
+        private readonly void* pad20; // LocateDevicePath
+        private readonly void* pad21; // InstallConfigurationTable
+        private readonly void* pad22; // LoadImage
+        private readonly void* pad23; // StartImage
+        private readonly void* pad24; // Exit
+        private readonly void* pad26; // UnloadImage
         public readonly delegate* unmanaged<IntPtr, nuint, EFI_STATUS> ExitBootServices;
-        private readonly void* pad27;
+        private readonly void* pad27; // GetNextMonotonicCount
         public readonly delegate* unmanaged<uint, ulong> Stall;
         private readonly void* pad28; // SetWatchdogTimer
         private readonly void* pad29; // ConnectController
@@ -191,6 +191,12 @@ namespace Internal.Runtime.CompilerHelpers
         private readonly void* pad34; // ProtocolsPerHandle
         private readonly void* pad35; // LocateHandleBuffer
         public readonly delegate* unmanaged<EFI_GUID*, void*, void**, EFI_STATUS> LocateProtocol;
+        private readonly void* pad36; // InstallMultipleProtocolInterfaces
+        private readonly void* pad37; // UninstallMultipleProtocolInterfaces
+        private readonly void* pad38; // CalculateCrc32
+        private readonly void* pad39; // CopyMem
+        private readonly void* pad40; // SetMem
+        private readonly void* pad41; // CreateEventEx
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -213,66 +219,6 @@ namespace Internal.Runtime.CompilerHelpers
             Data4[6] = data4_6;
             Data4[7] = data4_7;
         }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
-        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, uint, nuint*, EFI_GRAPHICS_OUTPUT_MODE_INFORMATION**, EFI_STATUS> QueryMode;
-        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, uint, EFI_STATUS> SetMode;
-        public readonly delegate* unmanaged<EFI_GRAPHICS_OUTPUT_PROTOCOL*, EFI_GRAPHICS_OUTPUT_BLT_PIXEL*, EFI_GRAPHICS_OUTPUT_BLT_OPERATION, nuint, nuint, nuint, nuint, nuint, nuint, nuint, EFI_STATUS> Blt;
-        public readonly EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE* Mode;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_BLT_PIXEL {
-        public readonly byte Blue;
-        public readonly byte Green;
-        public readonly byte Red;
-        public readonly byte Reserved;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE {
-        public readonly uint MaxMode;
-        public readonly uint Mode;
-        public readonly EFI_GRAPHICS_OUTPUT_MODE_INFORMATION* Info;
-        public readonly nuint SizeOfInfo;
-        public readonly nuint FrameBufferBase; // is this type correct?
-        public readonly nuint FrameBufferSize;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe readonly struct EFI_GRAPHICS_OUTPUT_MODE_INFORMATION {
-        public readonly uint Version;
-        public readonly uint HorizontalResolution;
-        public readonly uint VerticalResolution;
-        public readonly EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
-        public readonly EFI_PIXEL_BITMASK PixelInformation;
-        public readonly uint PixelsPerScanLine;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public unsafe readonly struct EFI_PIXEL_BITMASK {
-        public readonly uint RedMask;
-        public readonly uint GreenMask;
-        public readonly uint BlueMask;
-        public readonly uint ReservedMask;
-    }
-
-    public enum EFI_GRAPHICS_PIXEL_FORMAT : uint {
-        PixelRedGreenBlueReserved8BitPerColor,
-        PixelBlueGreenRedReserved8BitPerColor,
-        PixelBitMask,
-        PixelBltOnly,
-        PixelFormatMax
-    }
-
-    public enum EFI_GRAPHICS_OUTPUT_BLT_OPERATION : uint {
-        EfiBltVideoFill,
-        EfiBltVideoToBltBuffer,
-        EfiBltBufferToVideo,
-        EfiBltVideoToVideo,
-        EfiGRaphicsOutputBltOperationMax
     }
 
     public enum EFI_STATUS : ulong {
