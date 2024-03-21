@@ -47,10 +47,31 @@ namespace System
         {
             for (int i = 0; i < s.Length; i++)
                 Console.Write(s[i]);
+
+            WriteLine();
+        }
+
+        public static void WriteLine() {
 #if WINDOWS || UEFI
             Console.Write('\r');
 #endif
             Console.Write('\n');
+        }
+
+        public static void WriteLine(char* c) {
+            Write(c);
+
+            WriteLine();
+        }
+
+        public static void Write(char* c) {
+            if(c == null)
+                return;
+
+            while(*c != 0) {
+                Console.Write(*c);
+                c++;
+            }
         }
 
         public static void Write(string s) {
@@ -82,10 +103,7 @@ namespace System
         {
             Write(i);
 
-#if WINDOWS || UEFI
-            Console.Write('\r');
-#endif
-            Console.Write('\n');
+            WriteLine();
         }
     }
 }

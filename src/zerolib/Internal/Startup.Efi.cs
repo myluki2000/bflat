@@ -54,6 +54,11 @@ namespace Internal.Runtime.CompilerHelpers
     public struct EFI_HANDLE
     {
         private IntPtr _handle;
+
+        public EFI_HANDLE(IntPtr handle) => _handle = handle;
+
+        public static implicit operator IntPtr(EFI_HANDLE handle) => handle._handle;
+        public static implicit operator EFI_HANDLE(IntPtr handle) => new EFI_HANDLE { _handle = handle };
     }
 
     [StructLayout(LayoutKind.Sequential)]
