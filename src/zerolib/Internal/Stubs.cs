@@ -57,7 +57,7 @@ namespace Internal.Runtime.CompilerHelpers
     // A class that the compiler looks for that has helpers to initialize the
     // process. The compiler can gracefully handle the helpers not being present,
     // but the class itself being absent is unhandled. Let's add an empty class.
-    unsafe partial class StartupCodeHelpers
+    public unsafe partial class StartupCodeHelpers
     {
         // A couple symbols the generated code will need we park them in this class
         // for no particular reason. These aid in transitioning to/from managed code.
@@ -114,11 +114,11 @@ namespace Internal.Runtime.CompilerHelpers
             if (elementType != obj.m_pMethodTable)
                 Environment.FailFast(null); /* covariance */
 
-doWrite:
+            doWrite:
             element = obj;
             return;
 
-assigningNull:
+        assigningNull:
             element = null;
             return;
         }
@@ -137,26 +137,62 @@ assigningNull:
 
         static unsafe MethodTable** AllocObject(uint size)
         {
-#if WINDOWS
-            [DllImport("kernel32"), SuppressGCTransition]
-            static extern MethodTable** LocalAlloc(uint flags, uint size);
-            MethodTable** result = LocalAlloc(0x40, size);
-#elif LINUX
-            [DllImport("libSystem.Native"), SuppressGCTransition]
-            static extern MethodTable** SystemNative_Malloc(nuint size);
-            MethodTable** result = SystemNative_Malloc(size);
-#elif UEFI
             MethodTable** result;
-            if (EfiSystemTable->BootServices->AllocatePool(2 /* LoaderData*/, (nint)size, (void**)&result) != 0)
-                result = null;
-#else
-#error Nope
-#endif
 
-            if (result == null)
+            if (UseUefiAllocator)
+            {
+                if (EfiSystemTable->BootServices->AllocatePool(2 /* LoaderData*/, (nint)size, (void**)&result) != 0)
+                    result = null;
+
+                if (result == null)
+                    Environment.FailFast(null);
+
+                return result;
+            }
+
+            if(allocatorCurrentAddress < AllocatorStartAddress)
+                allocatorCurrentAddress = AllocatorStartAddress;
+            
+            if(allocatorCurrentAddress + size > AllocatorEndAddress)
                 Environment.FailFast(null);
+
+            // TODO: Create a proper allocator which doesn't just slowly fill up the memory
+            result = (MethodTable**)allocatorCurrentAddress;
+            allocatorCurrentAddress += size;
 
             return result;
         }
+
+        internal static unsafe void FreeObject(MethodTable** obj)
+        {
+            if (UseUefiAllocator)
+            {
+                if (EfiSystemTable->BootServices->FreePool((void*)obj) != 0)
+                    Environment.FailFast(null);
+                return;
+            }
+
+            // TODO: Implement freeing memory
+        }
+
+        private static bool _useUefiAllocator = true;
+        public static bool UseUefiAllocator
+        {
+            get => _useUefiAllocator;
+            set
+            {
+                if (value && (AllocatorStartAddress == 0x0 || AllocatorEndAddress == 0x0 || AllocatorStartAddress >= AllocatorEndAddress))
+                {
+                    Console.WriteLine("AllocatorStartAddress or AllocatorEndAddress is not set or set invalidly. Cannot disable UEFI allocator.");
+                    while (true) { }
+                }
+
+                _useUefiAllocator = value;
+            }
+        }
+        public static nuint AllocatorStartAddress { get; set; } = 0x0;
+        public static nuint AllocatorEndAddress { get; set; } = 0x0;
+
+        private static nuint allocatorCurrentAddress = 0x0;
     }
 }

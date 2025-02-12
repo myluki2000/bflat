@@ -857,7 +857,7 @@ internal class BuildCommand : CommandBase
                     ldArgs.Append("kernel32-supplements.lib ");
                 }
             }
-            ldArgs.Append("/opt:ref,icf /nodefaultlib:libcpmt.lib ");
+            ldArgs.Append("/opt:ref,icf /nodefaultlib ");
         }
         else if (targetOS == TargetOS.Linux)
         {

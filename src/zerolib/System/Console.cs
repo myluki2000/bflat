@@ -43,8 +43,12 @@ namespace System
 
     public static unsafe partial class Console
     {
+        public static bool Enabled { get; set; } = true;
+
         public static void WriteLine(string s)
         {
+            if(!Enabled) return;
+
             for (int i = 0; i < s.Length; i++)
                 Console.Write(s[i]);
 
@@ -52,6 +56,8 @@ namespace System
         }
 
         public static void WriteLine() {
+            if(!Enabled) return;
+
 #if WINDOWS || UEFI
             Console.Write('\r');
 #endif
@@ -59,12 +65,16 @@ namespace System
         }
 
         public static void WriteLine(char* c) {
+            if(!Enabled) return;
+
             Write(c);
 
             WriteLine();
         }
 
         public static void Write(char* c) {
+            if(!Enabled) return;
+
             if(c == null)
                 return;
 
@@ -75,11 +85,15 @@ namespace System
         }
 
         public static void Write(string s) {
+            if(!Enabled) return;
+            
             for (int i = 0; i < s.Length; i++)
                 Console.Write(s[i]);
         }
 
         public static void Write(int i) {
+            if(!Enabled) return;
+
             const int BufferSize = 16;
             char* pBuffer = stackalloc char[BufferSize];
             if (i < 0)
@@ -101,6 +115,8 @@ namespace System
 
         public static void WriteLine(int i)
         {
+            if(!Enabled) return;
+            
             Write(i);
 
             WriteLine();

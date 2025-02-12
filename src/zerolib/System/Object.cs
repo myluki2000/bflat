@@ -15,6 +15,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System.Runtime;
+using System.Runtime.InteropServices;
+using Internal.Runtime.CompilerHelpers;
 
 namespace System
 {
@@ -27,7 +29,7 @@ namespace System
 
         public static unsafe void Free(Object obj) {
             fixed(MethodTable** mt = &obj.m_pMethodTable) {
-                EfiSystemTable->BootServices->FreePool((void*)mt);
+                StartupCodeHelpers.FreeObject(mt);
             }
         }
     }

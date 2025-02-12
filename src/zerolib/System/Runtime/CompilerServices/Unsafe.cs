@@ -32,5 +32,10 @@ namespace System.Runtime.CompilerServices
         public static extern void* AsPointer<T>(ref T value);
         [Intrinsic]
         public static extern ref T AsRef<T>(void* source);
+        public static void Memset(void* destination, byte value, uint count) {
+            for (uint i = 0; i < count; i++) {
+                ((byte*)destination)[i] = value;
+            }
+        }
     }
 }

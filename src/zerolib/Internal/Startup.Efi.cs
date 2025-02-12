@@ -147,7 +147,8 @@ namespace Internal.Runtime.CompilerHelpers
 
     [StructLayout(LayoutKind.Sequential)]
     public unsafe readonly struct EFI_MEMORY_DESCRIPTOR {
-        public readonly uint Type;
+        public readonly EFI_MEMORY_TYPE Type;
+        public readonly uint Pad;
         public readonly ulong PhysicalStart; // type maybe should be IntPtr?
         public readonly ulong VirtualStart; // type maybe should be IntPtr?
         public readonly ulong NumberOfPages;
@@ -242,5 +243,25 @@ namespace Internal.Runtime.CompilerHelpers
         EFI_TIMEOUT =   		0x8000000000000012,
         EFI_ABORTED =   		0x8000000000000015,
         EFI_SECURITY_VIOLATION =0x800000000000001A,
+    }
+
+    public enum EFI_MEMORY_TYPE : uint {
+        EfiReservedMemoryType,
+        EfiLoaderCode,
+        EfiLoaderData,
+        EfiBootServicesCode,
+        EfiBootServicesData,
+        EfiRuntimeServicesCode,
+        EfiRuntimeServicesData,
+        EfiConventionalMemory,
+        EfiUnusableMemory,
+        EfiACPIReclaimMemory,
+        EfiACPIMemoryNVS,
+        EfiMemoryMappedIO,
+        EfiMemoryMappedIOPortSpace,
+        EfiPalCode,
+        EfiPersistentMemory,
+        EfiUnacceptedMemoryType,
+        EfiMaxMemoryType
     }
 }
